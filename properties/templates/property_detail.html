@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ property.title }} - Property Details{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-10">
+    <!-- Property main card -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        {% if property.get_image_src %}
+            <img src="{{ property.get_image_src }}" 
+                 alt="{{ property.title }}" 
+                 class="w-full h-96 object-cover">
+        {% else %}
+            <div class="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-500">
+                No image available
+            </div>
+        {% endif %}
+
+        <div class="p-6">
+            <h1 class="text-3xl font-bold mb-2">{{ property.title }}</h1>
+            <p class="text-gray-500 mb-4">{{ property.location }}</p>
+
+            <div class="text-rose-600 font-bold text-xl mb-6">
+                ${{ property.price }}
+            </div>
+
+            {% if property.description %}
+                <div class="prose max-w-none mb-6">
+                    {{ property.description }}
+                </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div><strong>Bedrooms:</strong> {{ property.bedrooms }}</div>
+                <div><strong>Bathrooms:</strong> {{ property.bathrooms }}</div>
+                <div><strong>Area:</strong> {{ property.area }} sq ft</div>
+                <div><strong>Type:</strong> {{ property.property_type }}</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

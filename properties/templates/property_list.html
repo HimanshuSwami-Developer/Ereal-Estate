@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Properties{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6">Browse Properties</h1>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+        <!-- Filter Sidebar (Desktop) -->
+        <div class="hidden lg:block w-1/4 bg-white p-4 rounded shadow h-fit">
+            {% include "filters.html" %}
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col gap-6">
+            <!-- Filter Button (Mobile) -->
+            <div class="lg:hidden mb-4">
+                <button id="open-filters" class="px-4 py-2 bg-sky-600 text-white rounded">
+                    Filters
+                </button>
+            </div>
+
+            <!-- Property Results -->
+    <div id="results">
+        {% if properties %}
+            {% include "_property_cards.html" with properties=properties %}
+        {% else %}
+            <div class="col-span-full text-center text-gray-500 py-8">
+                No properties found
+            </div>
+        {% endif %}
+    </div>
+    <div id="results-meta" class="mt-4 text-sm text-gray-600">
+        {{ properties.count }} results found  <!-- Show initial count -->
+    </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Filters Drawer -->
+<div id="mobile-filters" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="absolute bottom-0 w-full bg-white p-6 rounded-t-lg max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold">Filters</h2>
+            <button id="close-filters" class="text-gray-500 hover:text-gray-700">✖</button>
+        </div>
+        {% include "filters.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function initFilters(config) {
+    function fetchData() {
+        $.get(config.ajaxUrl, $('#filter-form').serialize())
+            .done(function(data) {
+                $(config.resultsContainer).html(data.html);
+                $(config.metaContainer).text(data.count + ' results found');
+            })
+            .fail(function(xhr, status, error) {
+                console.error('Filter AJAX failed:', error);
+            });
+    }
+
+    $('#filter-form input, #filter-form select').on('change keyup', function(){
+        if (!$('#apply-filters').is(':visible')) {
+            fetchData();
+        }
+    });
+
+    $('#apply-filters').click(function(){
+        fetchData();
+        $('#mobile-filters').addClass('hidden');
+    });
+
+    $('#reset-filters').click(function(){
+        $('#filter-form')[0].reset();
+        fetchData();
+    });
+}
+
+$(function(){
+    initFilters({
+        ajaxUrl: "{% url 'properties:property_filter_ajax' %}",
+        resultsContainer: "#results",
+        metaContainer: "#results-meta"
+    });
+
+    // Fetch initial data on page load
+    $('#filter-form')[0].reset(); // Optional — clear defaults
+    fetchData(); // <--- Trigger initial load
+
+    // Mobile open/close filter drawer
+    $('#open-filters').click(() => $('#mobile-filters').removeClass('hidden'));
+    $('#close-filters').click(() => $('#mobile-filters').addClass('hidden'));
+});
+
+
+</script>
+{% endblock %}

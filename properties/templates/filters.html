@@ -1,0 +1,81 @@
+<form id="filter-form" class="grid grid-cols-1 gap-4">
+    <div>
+        <label class="text-sm font-medium">Search</label>
+        <input type="text" name="q" id="q" placeholder="Search title or description"
+               class="mt-1 block w-full rounded border px-3 py-2">
+    </div>
+
+    <div>
+        <label class="text-sm font-medium">Location</label>
+        <select name="location" id="location" class="mt-1 block w-full rounded border px-3 py-2">
+            <option value="">Any</option>
+            {% for loc in locations %}
+                <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label class="text-sm font-medium">Min price</label>
+        <input type="number" name="min_price" id="min_price" placeholder="0"
+               class="mt-1 block w-full rounded border px-3 py-2">
+    </div>
+
+    <div>
+        <label class="text-sm font-medium">Max price</label>
+        <input type="number" name="max_price" id="max_price" placeholder="99999999"
+               class="mt-1 block w-full rounded border px-3 py-2">
+    </div>
+
+    <div class="flex gap-2 mt-4">
+        <button type="button" id="apply-filters" class="flex-1 px-4 py-2 bg-sky-600 text-white rounded">
+            Apply
+        </button>
+        <button type="button" id="reset-filters" class="flex-1 px-4 py-2 bg-gray-200 rounded">
+            Reset
+        </button>
+    </div>
+</form>
+{% block extra_js %}
+<script>
+    function initFilters(config) {
+        function fetchData() {
+            $.get(config.ajaxUrl, $('#filter-form').serialize())
+                .done(function(data) {
+                    $(config.resultsContainer).html(data.html);
+                    $(config.metaContainer).text(data.count + ' results found');
+                })
+                .fail(function(xhr, status, error) {
+                    console.error('Filter AJAX failed:', error);
+                });
+        }
+    
+        $('#filter-form input, #filter-form select').on('change keyup', function(){
+            if (!$('#apply-filters').is(':visible')) {
+                fetchData();
+            }
+        });
+    
+        $('#apply-filters').click(function(){
+            fetchData();
+            $('#mobile-filters').addClass('hidden');
+        });
+    
+        $('#reset-filters').click(function(){
+            $('#filter-form')[0].reset();
+            fetchData();
+        });
+    }
+$(function(){
+    initFilters({
+        ajaxUrl: "{% url 'properties:property_filter_ajax' %}",
+        resultsContainer: "#results",
+        metaContainer: "#results-meta"
+    });
+
+    // Mobile open/close
+    $('#open-filters').click(() => $('#mobile-filters').removeClass('hidden'));
+    $('#close-filters').click(() => $('#mobile-filters').addClass('hidden'));
+});
+</script>
+{% endblock %}
