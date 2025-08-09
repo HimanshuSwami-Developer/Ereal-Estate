@@ -3,15 +3,21 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-u0oz*ew0h^^n^(k7ir@^8q)-7_0g$f-silv-w9qm8g#wwobc=t'
+# SECURITY WARNING: keep the secret key used in production!
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'change-this-to-a-secure-key')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Debug should be False in production
+DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = ['himanshuswami.pythonanywhere.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    'himanshuswami.pythonanywhere.com',
+    '127.0.0.1',
+    'localhost'
+]
 
+# -----------------------
 # Application definition
+# -----------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -60,7 +66,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'HimanshuSwami$default',  # Must include username$
         'USER': 'HimanshuSwami',
-        'PASSWORD': 'admin@123',
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'admin@123'),
         'HOST': 'HimanshuSwami.mysql.pythonanywhere-services.com',
         'PORT': '3306',
         'OPTIONS': {
@@ -73,10 +79,10 @@ DATABASES = {
 # Password validation
 # -----------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 # -----------------------
@@ -91,9 +97,16 @@ USE_TZ = True
 # Static & Media files
 # -----------------------
 STATIC_URL = '/static/'
-STATICFILES_DIRS = []  # App-level static
-STATIC_ROOT = BASE_DIR / 'staticfiles'                   # Where collectstatic puts files
 
+# Location where collectstatic will put all files
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# If you also have extra static folders (optional)
+STATICFILES_DIRS = [
+    BASE_DIR / 'properties' / 'static'
+]
+
+# Media uploads
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
