@@ -88,22 +88,30 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'estate',
-        'USER': 'neondb_owner',
-        'PASSWORD': 'npg_0saSJ2tgcMym',
-        'HOST': 'ep-rough-glade-a1wj1e4c-pooler.ap-southeast-1.aws.neon.tech',
-        'PORT': '5432',
-        'OPTIONS': {
-            'sslmode': 'require',
-            'channel_binding': 'require',
-        },
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'HimanshuSwami$default',
+        'USER': 'HimanshuSwami',
+        'PASSWORD': 'admin@123',
+        'HOST': 'HimanshuSwami.mysql.pythonanywhere-services.com',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'estate',
+#         'USER': 'neondb_owner',
+#         'PASSWORD': 'npg_0saSJ2tgcMym',
+#         'HOST': 'ep-rough-glade-a1wj1e4c-pooler.ap-southeast-1.aws.neon.tech',
+#         'PORT': '5432',
+#         'OPTIONS': {
+#             'sslmode': 'require',
+#             'channel_binding': 'require',
+#         },
+#     }
+# }
 
 
 
