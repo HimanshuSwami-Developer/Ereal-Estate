@@ -91,7 +91,7 @@ USE_TZ = True
 # Static & Media files
 # -----------------------
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / 'properties' / 'static']  # App-level static
+STATICFILES_DIRS = []  # App-level static
 STATIC_ROOT = BASE_DIR / 'staticfiles'                   # Where collectstatic puts files
 
 MEDIA_URL = '/media/'
