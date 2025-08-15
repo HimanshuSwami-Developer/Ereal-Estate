@@ -4,10 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Real Estate{% endblock %}</title>
+    <title>Real Estate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    {% block extra_head %}{% endblock %}
+    <style>
+        /* Hide scrollbar but keep scroll functionality */
+        #locations-container {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+        }
+        #locations-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari */
+        }
+        
+        /* Property details container */
+        #propertyDetailsContainer {
+            overflow-y: auto;
+        }
+        
+        /* Mobile sidebar */
+        @media (max-width: 767px) {
+            #productSideBar {
+                position: fixed;
+                top: 0;
+                left: -100%;
+                width: 80%;
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+            }
+            #productSideBar.active {
+                left: 0;
+            }
+            #sidebarOverlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 999;
+            }
+            #productSideBar.active ~ #sidebarOverlay {
+                display: block;
+            }
+            #mobileFilterBtn {
+                display: block;
+            }
+            
+            /* Fix for mobile layout */
+            .flex-col-mobile {
+                flex-direction: column;
+            }
+            
+            /* Ensure properties container doesn't cause horizontal overflow */
+            #propertiesContainer {
+                width: 100%;
+                overflow-x: hidden;
+            }
+            
+            /* Adjust property cards for mobile */
+            .property-card {
+                width: 100%;
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+        
+        /* Desktop sidebar */
+        @media (min-width: 768px) {
+            #mobileFilterBtn {
+                display: none;
+            }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
 
@@ -15,27 +87,22 @@
     <nav class="bg-[#FCF3EE] backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <!-- Logo -->
-            <a href="{% url 'properties:index' %}" class="flex items-center space-x-2">
-                <img src="{% static 'properties/images/logo.png' %}" 
-                         alt="CAPITAL Logo" 
-                         class="h-auto w-[20%]"> 
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="{% static 'images/logo.png' %}" alt="CAPITAL Logo" class="h-auto w-[20%]">
             </a>
 
             <!-- Menu -->
             <div class="hidden md:flex space-x-10 font-medium text-sm">
-                
-                <a href="{% url 'properties:index' %}" class="hover:text-sky-600 transition">Home</a>
-                <a href="{% url 'properties:property_list' %}" class="hover:text-sky-600 transition">Properties</a>
+                <a href="index.html" class="hover:text-sky-600 transition">Home</a>
+                <a href="properties.html" class="hover:text-sky-600 transition">Properties</a>
                 <div class="flex flex-col items-center">
-                    <img src="{% static 'properties/images/contact.png' %}" 
-                    alt="CAPITAL Logo" 
-                    class="w-[30%] h-auto"> 
-                    <a href="#" class="hover:text-sky-600 transition">Contact</a></div>
-                    <div class="flex flex-col items-center">
-                        <img src="{% static 'properties/images/saved.png' %}" 
-                        alt="CAPITAL Logo" 
-                        class="w-[35%] h-auto"> 
-                        <a href="#" class="hover:text-sky-600 transition">Saved</a></div>
+                    <img src="{% static 'images/contact.png' %}" alt="Contact" class="w-[30%] h-auto">
+                    <a href="#" class="hover:text-sky-600 transition">Contact</a>
+                </div>
+                <div class="flex flex-col items-center gap-1">
+                    <img src="{% static 'images/saved.png' %}" alt="Saved" class="w-[35%] h-auto">
+                    <a href="#" class="hover:text-sky-600 transition">Saved</a>
+                </div>
             </div>
 
             <!-- Mobile Menu Button -->
@@ -48,17 +115,200 @@
 
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
-            <a href="{% url 'properties:index' %}" class="block px-4 py-2 hover:bg-sky-50">Home</a>
-            <a href="{% url 'properties:property_list' %}" class="block px-4 py-2 hover:bg-sky-50">Properties</a>
+            <a href="index.html" class="block px-4 py-2 hover:bg-sky-50">Home</a>
+            <a href="properties.html" class="block px-4 py-2 hover:bg-sky-50">Properties</a>
             <a href="#" class="block px-4 py-2 hover:bg-sky-50">About</a>
             <a href="#" class="block px-4 py-2 hover:bg-sky-50">Contact</a>
         </div>
     </nav>
 
-    <!-- Page Content -->
-    <main class="flex-grow">
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Banner Section -->
+    <section id="landing-banner" class="relative m-4 rounded-lg w-auto h-auto md:h-[500px] flex items-end justify-center text-white bg-black">
+        <img id="banner-image" src="" alt="Banner" class="absolute rounded-lg top-0 left-0 w-full h-full object-cover opacity-80">
+        <div class="relative z-10 pb-12 text-center">
+            <h1 id="banner-title" class="text-4xl font-bold"></h1>
+            <button id="banner-button" class="mt-4 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded"></button>
+        </div>
+    </section>
+
+    <!-- Locations Section -->
+    <section class="p-6">
+        <h2 class="text-xl font-bold mb-4">Popular Locations</h2>
+        <div id="locations-container" class="flex space-x-4 overflow-x-auto pb-4"></div>
+    </section>
+
+    <!-- Trusted Real Estate Advisory Section -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <!-- Left Side: Title & Stats -->
+            <div>
+                <h2 class="text-3xl font-extrabold text-[#2A2C5F] mb-8 leading-snug">
+                    YOUR TRUSTED <br> REAL ESTATE ADVISORY
+                </h2>
+                
+                <div class="grid grid-cols-2 gap-6">
+                    <!-- Card 1 -->
+                    <div class="bg-[#D3D8F1] rounded-lg p-12 text-center">
+                        <p class="text-3xl font-bold text-[#2A2C5F]">100+</p>
+                        <p class="text-sm text-[#2A2C5F]">Satisfied Customer</p>
+                    </div>
+                    
+                    <!-- Card 2 -->
+                    <div class="bg-[#2A2C5F] rounded-lg p-12 text-center text-white">
+                        <p class="text-3xl font-bold">50+</p>
+                        <p class="text-sm">Award Wining</p>
+                    </div>
+                    
+                    <!-- Card 3 -->
+                    <div class="bg-[#D3D8F1] rounded-lg p-12 text-center">
+                        <p class="text-3xl font-bold text-[#2A2C5F]">07+</p>
+                        <p class="text-sm text-[#2A2C5F]">Year of Experience</p>
+                    </div>
+                    
+                    <!-- Card 4 -->
+                    <div class="bg-[#D3D8F1] rounded-lg p-12 text-center">
+                        <p class="text-3xl font-bold text-[#2A2C5F]">40+</p>
+                        <p class="text-sm text-[#2A2C5F]">Properties Delivered</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Side: Description & Images -->
+            <div>
+                <p class="text-gray-500 mb-8 leading-relaxed">
+                    We guide you through every step of your property journey with expertise and integrity.
+                    From prime locations to the best investment opportunities, we ensure you make confident,
+                    well-informed decisions. Your dream property is our mission, and we're here to make it a reality.
+                </p>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <img src="https://i.ibb.co/5W2ctyXC/Rectangle-4.png" alt="Gallery Image 1" class="rounded-lg object-cover w-full h-36">
+                    <img src="https://i.ibb.co/5W2ctyXC/Rectangle-4.png" alt="Gallery Image 2" class="rounded-lg object-cover w-full h-36">
+                    <img src="https://i.ibb.co/5W2ctyXC/Rectangle-4.png" alt="Gallery Image 3" class="rounded-lg object-cover w-full h-56 col-span-2">
+                </div>
+            </div>
+            
+        </div>
+    </section>
+
+    <section class="bg-[#fdf6f2] font-sans">
+        <div class="max-w-[1400px] mx-auto p-5">
+          <!-- Top Bar - Sticky -->
+          <div id="productTop" class="flex flex-wrap sticky top-20 z-10 bg-[#fdf6f2] gap-3 justify-between mb-6 py-2">
+            <div class="flex gap-3 flex-wrap">
+              <select id="sortBy" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white">
+                <option value="">Sort By</option>
+                <option value="newest">Newest</option>
+                <option value="price_asc">Price (Low to High)</option>
+                <option value="price_desc">Price (High to Low)</option>
+              </select>
+              <select id="propertyCategory" class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white">
+                <option value="">All Properties</option>
+                <option value="property">For Sale</option>
+                <option value="rental">For Rent</option>
+              </select>
+              <button id="mobileFilterBtn" class="md:hidden px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                </svg>
+                Filters
+              </button>
+            </div>
+            <input type="text" id="searchInput" placeholder="Search..." class="px-4 py-2 border border-gray-300 rounded-lg shadow-sm w-full md:w-64">
+          </div>
+        
+          <!-- Layout -->
+          <div class="flex flex-col md:flex-row gap-6 relative">
+            <!-- Sidebar - Sticky -->
+            <aside id="productSideBar" class="bg-white sticky top-[140px] h-[calc(100vh-150px)] rounded-2xl p-4 shadow-md w-full md:w-72 overflow-y-auto">
+              <div class="space-y-5">
+                <div class="md:hidden flex justify-between items-center border-b pb-3 mb-3">
+                  <h3 class="text-lg font-semibold">Filters</h3>
+                  <button id="closeSidebar" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Price</h3>
+                  <input type="range" id="priceRange" min="0" max="50000000" step="100000" class="w-full">
+                  <div class="flex justify-between text-sm">
+                    <span id="minPrice">₹0</span>
+                    <span id="maxPrice">₹5Cr+</span>
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Location / Area</h3>
+                  <div id="locationFilters" class="max-h-40 overflow-y-auto">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Property Type</h3>
+                  <div id="propertyTypeFilters">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Area Size (sqft)</h3>
+                  <input type="range" id="areaRange" min="0" max="5000" step="100" class="w-full">
+                  <div class="flex justify-between text-sm">
+                    <span id="minArea">0 sqft</span>
+                    <span id="maxArea">5000+ sqft</span>
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">BHK</h3>
+                  <div id="bhkFilters">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Furnishing</h3>
+                  <div id="furnishingFilters">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+        
+                <div>
+                  <h3 class="text-base font-semibold mb-2">Availability</h3>
+                  <div id="availabilityFilters">
+                    <!-- Dynamically populated -->
+                  </div>
+                </div>
+                
+                <div class="md:hidden">
+                  <button id="applyFilters" class="w-full bg-indigo-600 text-white py-2 rounded-lg">Apply Filters</button>
+                </div>
+              </div>
+            </aside>
+            
+            <!-- Sidebar overlay for mobile -->
+            <div id="sidebarOverlay" class="hidden"></div>
+        
+           <!-- Main content area -->
+            <main class="flex-1 w-full overflow-hidden">
+              <!-- Properties grid -->
+              <div id="propertiesContainer" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                  <!-- Properties will be loaded here -->
+                  <div class="text-center py-10 col-span-3">Loading properties...</div>
+              </div>
+              
+              <!-- Property details view (hidden by default) -->
+              <div id="propertyDetailsContainer" class="hidden bg-white rounded-xl shadow-md p-6 w-full">
+                  <!-- Property details will be loaded here -->
+              </div>
+            </main>
+          </div>
+        </div> 
+      </section>
 
     <!-- Footer -->
     <footer class="bg-gray-900 text-white mt-10">
@@ -73,8 +323,8 @@
             <div>
                 <h3 class="text-lg font-semibold mb-3">Quick Links</h3>
                 <ul class="space-y-2 text-gray-400 text-sm">
-                    <li><a href="{% url 'properties:index' %}" class="hover:text-sky-400">Home</a></li>
-                    <li><a href="{% url 'properties:property_list' %}" class="hover:text-sky-400">Properties</a></li>
+                    <li><a href="index.html" class="hover:text-sky-400">Home</a></li>
+                    <li><a href="properties.html" class="hover:text-sky-400">Properties</a></li>
                     <li><a href="#" class="hover:text-sky-400">About</a></li>
                     <li><a href="#" class="hover:text-sky-400">Contact</a></li>
                 </ul>
@@ -98,17 +348,494 @@
             </div>
         </div>
         <div class="bg-gray-800 py-4 text-center text-xs text-gray-400">
-            &copy; {{ now|date:"Y" }} RealEstate. All rights reserved.
+            &copy; 2025 RealEstate. All rights reserved.
         </div>
     </footer>
 
-    {% block extra_js %}{% endblock %}
-
-    <!-- Mobile menu toggle -->
     <script>
-        $("#mobile-menu-btn").click(function(){
-            $("#mobile-menu").slideToggle();
-        });
-    </script>
+          $(document).ready(function() {
+            var mockData = [];
+            var locationMap = {};
+
+            // Simulate API call for banner and locations
+            $.getJSON("/landing-page/", function(data) {
+                // Banner
+                if (data.landing) {
+                    $("#banner-image").attr("src", data.landing.banner_image_url);
+                    $("#banner-title").text(data.landing.banner_title);
+                    $("#banner-button").text(data.landing.banner_subtitle);
+                }
+        
+                // Populate mockData with products
+                if (data.products && data.products.length > 0) {
+                    mockData.push(...data.products);
+                }
+                
+                // Locations (Scrollable Cards)
+                if (data.locations && data.locations.length > 0) {
+                    let locationHtml = '';
+                    data.locations.forEach(function(loc, index) {
+                        // Map location id to name
+                        locationMap[loc.id] = loc.location;
+                        locationHtml += `
+                            <div class="flex-none w-60 bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+                                <img src="${loc.image_url}" alt="${loc.location}" class="w-full h-36 object-cover">
+                                <div class="p-3">
+                                    <h3 class="text-base font-semibold truncate">${loc.location}</h3>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    $("#locations-container").html(locationHtml);
+                }
+
+                // Populate filters after mockData and locationMap are ready
+                populateFilters(mockData);
+                
+                // Initial load of properties
+                fetchProperties();
+            }).fail(function() {
+                $("#banner-image").attr("src", "https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80");
+                $("#banner-title").text("Find Your Dream Home");
+                $("#banner-button").text("Browse Properties");
+                
+                const fallbackLocations = [
+                    { id: 1, location: "Sector 56", image_url: "https://i.ibb.co/5W2ctyXC/Rectangle-4.png" },
+                    { id: 2, location: "DLF Phase 5", image_url: "https://i.ibb.co/5W2ctyXC/Rectangle-4.png" },
+                    { id: 8, location: "Sohna Road", image_url: "https://i.ibb.co/5W2ctyXC/Rectangle-4.png" },
+                    { id: 4, location: "Sector 42", image_url: "https://i.ibb.co/5W2ctyXC/Rectangle-4.png" },
+                    { id: 9, location: "MG Road", image_url: "https://i.ibb.co/5W2ctyXC/Rectangle-4.png" }
+                ];
+                
+                let locationHtml = '';
+                fallbackLocations.forEach(function(loc) {
+                    locationMap[loc.id] = loc.location;
+                    locationHtml += `
+                        <div class="flex-none w-60 bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+                            <img src="${loc.image_url}" alt="${loc.location}" class="w-full h-36 object-cover">
+                            <div class="p-3">
+                                <h3 class="text-base font-semibold truncate">${loc.location}</h3>
+                            </div>
+                        </div>
+                    `;
+                });
+                $("#locations-container").html(locationHtml);
+
+                // Populate filters with mockData (in case of API failure, use fallback data if available)
+                populateFilters(mockData);
+                
+                // Initial load of properties
+                fetchProperties();
+            });
+
+            // Dynamically populate filters
+            function populateFilters(data) {
+                // Locations
+                const uniqueLocations = [...new Set(data.flatMap(p => p.location))];
+                let locationHtml = '';
+                uniqueLocations.forEach(locId => {
+                    if (locationMap[locId]) {
+                        locationHtml += `
+                            <label class="block text-sm py-1">
+                                <input type="checkbox" name="location" value="${locId}" class="mr-2">${locationMap[locId]}
+                            </label>
+                        `;
+                    }
+                });
+                $('#locationFilters').html(locationHtml);
+
+                // Property Types
+                const uniquePropertyTypes = [...new Set(data.map(p => p.property_type))];
+                let propertyTypeHtml = '';
+                uniquePropertyTypes.forEach(type => {
+                    propertyTypeHtml += `
+                        <label class="block text-sm py-1">
+                            <input type="checkbox" name="property_type" value="${type}" class="mr-2">${type.charAt(0).toUpperCase() + type.slice(1)}
+                        </label>
+                    `;
+                });
+                $('#propertyTypeFilters').html(propertyTypeHtml);
+
+                // BHK
+                const uniqueBhk = [...new Set(data.filter(p => p.bhk).map(p => p.bhk))].sort();
+                let bhkHtml = '';
+                uniqueBhk.forEach(bhk => {
+                    bhkHtml += `
+                        <label class="block text-sm py-1">
+                            <input type="checkbox" name="bhk" value="${bhk}" class="mr-2">${bhk.toUpperCase()}
+                        </label>
+                    `;
+                });
+                $('#bhkFilters').html(bhkHtml);
+
+                // Furnishing
+                const uniqueFurnishing = [...new Set(data.map(p => p.furnishing).filter(f => f))];
+                let furnishingHtml = '';
+                uniqueFurnishing.forEach(furn => {
+                    furnishingHtml += `
+                        <label class="block text-sm py-1">
+                            <input type="checkbox" name="furnishing" value="${furn}" class="mr-2">${furn.charAt(0).toUpperCase() + furn.slice(1)}
+                        </label>
+                    `;
+                });
+                $('#furnishingFilters').html(furnishingHtml);
+
+                // Availability
+                const uniqueAvailability = [...new Set(data.map(p => p.availability))];
+                let availabilityHtml = '';
+                uniqueAvailability.forEach(avail => {
+                    availabilityHtml += `
+                        <label class="block text-sm py-1">
+                            <input type="checkbox" name="availability" value="${avail}" class="mr-2">${avail === 'ready' ? 'Ready to Move' : 'Under Construction'}
+                        </label>
+                    `;
+                });
+                $('#availabilityFilters').html(availabilityHtml);
+
+                // Update price range
+                if (data.length > 0) {
+                    const maxPrice = Math.max(...data.map(p => parseFloat(p.price)));
+                    $('#priceRange').attr('max', Math.ceil(maxPrice / 100000) * 100000);
+                    $('#maxPrice').text(formatPrice(Math.ceil(maxPrice / 100000) * 100000));
+                }
+
+                // Update area range
+                if (data.length > 0) {
+                    const maxArea = Math.max(...data.map(p => p.area_size));
+                    $('#areaRange').attr('max', Math.ceil(maxArea / 100) * 100);
+                    $('#maxArea').text(`${Math.ceil(maxArea / 100) * 100}+ sqft`);
+                }
+            }
+
+            // Mobile menu toggle
+            $("#mobile-menu-btn").click(function(){
+                $("#mobile-menu").slideToggle();
+            });
+            
+            // Mobile sidebar toggle
+            $("#mobileFilterBtn").click(function() {
+                $("#productSideBar").addClass("active");
+                $("#sidebarOverlay").show();
+            });
+            
+            $("#closeSidebar").click(function() {
+                $("#productSideBar").removeClass("active");
+                $("#sidebarOverlay").hide();
+            });
+            
+            $("#sidebarOverlay").click(function() {
+                $("#productSideBar").removeClass("active");
+                $("#sidebarOverlay").hide();
+            });
+            
+            $("#applyFilters").click(function() {
+                $("#productSideBar").removeClass("active");
+                $("#sidebarOverlay").hide();
+                fetchProperties();
+            });
+
+            // Format price to display in Lakhs/Crores
+            function formatPrice(price) {
+                price = parseFloat(price);
+                if (price >= 10000000) {
+                    return '₹' + (price / 10000000).toFixed(2) + ' Cr';
+                } else if (price >= 100000) {
+                    return '₹' + (price / 100000).toFixed(2) + ' L';
+                } else {
+                    return '₹' + price.toLocaleString('en-IN');
+                }
+            }
+        
+            // Get location name by ID
+            function getLocationName(id) {
+                return locationMap[id] || "Location not specified";
+            }
+        
+            // Fetch properties
+            function fetchProperties() {
+                const container = $('#propertiesContainer');
+                container.html('<div class="text-center py-10 col-span-3">Loading properties...</div>');
+        
+                // Build query parameters
+                const params = {
+                    search: $('#searchInput').val()
+                };
+        
+                // Add sorting
+                const sortBy = $('#sortBy').val();
+                if (sortBy === 'newest') params.ordering = '-created_at';
+                if (sortBy === 'price_asc') params.ordering = 'price';
+                if (sortBy === 'price_desc') params.ordering = '-price';
+        
+                // Add category filter
+                const category = $('#propertyCategory').val();
+                if (category) params.category = category;
+        
+                // Add price range filter
+                const priceRange = $('#priceRange').val();
+                if (priceRange > 0) params.price_lte = priceRange;
+        
+                // Add area range filter
+                const areaRange = $('#areaRange').val();
+                if (areaRange > 0) params.area_size_lte = areaRange;
+        
+                // Add checkbox filters
+                $('input[type="checkbox"]:checked').each(function() {
+                    const name = $(this).attr('name');
+                    const value = $(this).val();
+                    
+                    if (!params[name]) {
+                        params[name] = value;
+                    } else if (Array.isArray(params[name])) {
+                        params[name].push(value);
+                    } else {
+                        params[name] = [params[name], value];
+                    }
+                });
+        
+                // Apply filters to mock data
+                let filteredData = mockData.filter(property => {
+                    // Search filter
+                    if (params.search && !property.title.toLowerCase().includes(params.search.toLowerCase())) {
+                        return false;
+                    }
+                    
+                    // Category filter
+                    if (params.category && property.category !== params.category) {
+                        return false;
+                    }
+                    
+                    // Price filter
+                    if (params.price_lte && parseFloat(property.price) > params.price_lte) {
+                        return false;
+                    }
+                    
+                    // Area filter
+                    if (params.area_size_lte && property.area_size > params.area_size_lte) {
+                        return false;
+                    }
+                    
+                    // Location filter
+                    if (params.location) {
+                        const locationIds = Array.isArray(params.location) ? params.location : [params.location];
+                        if (!property.location.some(loc => locationIds.includes(loc.toString()))) {
+                            return false;
+                        }
+                    }
+                    
+                    // Property type filter
+                    if (params.property_type && property.property_type !== params.property_type) {
+                        return false;
+                    }
+                    
+                    // BHK filter
+                    if (params.bhk && property.bhk && !params.bhk.includes(property.bhk.toLowerCase())) {
+                        return false;
+                    }
+                    
+                    // Furnishing filter
+                    if (params.furnishing && property.furnishing !== params.furnishing) {
+                        return false;
+                    }
+                    
+                    // Availability filter
+                    if (params.availability && property.availability !== params.availability) {
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+                // Apply sorting
+                if (params.ordering) {
+                    filteredData.sort((a, b) => {
+                        if (params.ordering === '-created_at') {
+                            return b.id - a.id; // Newest first (using ID as proxy for creation date)
+                        } else if (params.ordering === 'price') {
+                            return parseFloat(a.price) - parseFloat(b.price);
+                        } else if (params.ordering === '-price') {
+                            return parseFloat(b.price) - parseFloat(a.price);
+                        }
+                        return 0;
+                    });
+                }
+                
+                if (filteredData.length === 0) {
+                    container.html('<div class="text-center py-10 col-span-3">No properties found matching your criteria.</div>');
+                    return;
+                }
+        
+                let html = '';
+                $.each(filteredData, function(index, property) {
+                    // Get location names
+                    const locationNames = property.location ? 
+                        property.location.map(id => getLocationName(id)).join(', ') : 
+                        'Location not specified';
+        
+                    html += `
+                        <div class="bg-white rounded-xl h-[400px] shadow-md overflow-hidden hover:shadow-lg transition-shadow property-card">
+                            <img src="${property.images_urls[0] || 'https://via.placeholder.com/300x150'}" 
+                                alt="${property.title}" 
+                                class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h4 class="font-semibold text-lg">${property.title}</h4>
+                                <p class="text-sm text-gray-500">${locationNames}</p>
+                                <p class="text-sm text-gray-500 mt-2">
+                                    <span class="font-medium">${formatPrice(property.price)}</span> • 
+                                    ${property.property_type === 'residential' ? property.bhk || '' : 'Commercial'} • 
+                                    ${property.area_size} sqft
+                                </p>
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">${property.property_type}</span>
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">${property.furnishing || 'Furnishing not specified'}</span>
+                                    <span class="text-xs bg-gray-100 px-2 py-1 rounded">${property.availability}</span>
+                                </div>
+                                <a href="#" data-property-id="${property.id}" class="property-detail-link text-indigo-600 text-sm mt-3 block">Know More →</a>
+                            </div>
+                        </div>
+                    `;
+                });
+        
+                container.html(html);
+                $('.property-detail-link').click(function(e) {
+                    e.preventDefault();
+                    const propertyId = $(this).data('property-id');
+                    loadPropertyDetails(propertyId, filteredData);
+                });
+            }
+        
+            function loadPropertyDetails(propertyId, properties) {
+                const container = $('#propertiesContainer');
+                const productTop = $('#productTop');
+                const productSideBar = $('#productSideBar');
+                const detailsContainer = $('#propertyDetailsContainer');
+                
+                // Show loading state
+                container.addClass('hidden');
+                productTop.addClass('hidden');
+                productSideBar.addClass('hidden');
+                detailsContainer.removeClass('hidden').html('<div class="text-center py-10">Loading property details...</div>');
+                
+                // Find the property in our mock data
+                setTimeout(function() {
+                    const property = properties.find(p => p.id == propertyId);
+                    
+                    if (!property) {
+                        detailsContainer.html(`
+                            <div class="text-center py-10 text-red-500">
+                                Property not found.
+                                <button id="backButton" class="mt-4 text-indigo-600 hover:text-indigo-800">
+                                    Back to Properties
+                                </button>
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    // Get location names
+                    const locationNames = property.location ? 
+                        property.location.map(id => getLocationName(id)).join(', ') : 
+                        'Location not specified';
+                    
+                    // Create back button
+                    const backButton = `
+                        <button id="backButton" class="mb-4 flex items-center text-indigo-600 hover:text-indigo-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                            </svg>
+                            Back to Properties
+                        </button>
+                    `;
+                    
+                    // Create image gallery
+                    let imagesHtml = '';
+                    if (property.images_urls && property.images_urls.length > 0) {
+                        imagesHtml = `
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                                ${property.images_urls.map(img => `
+                                    <img src="${img}" alt="${property.title}" class="w-full h-48 object-cover rounded-lg">
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                    
+                    // Create property details HTML
+                    const detailsHtml = `
+                        ${backButton}
+                        <h2 class="text-2xl font-bold mb-4">${property.title}</h2>
+                        <p class="text-gray-600 mb-2"><span class="font-semibold">Location:</span> ${locationNames}</p>
+                        <p class="text-gray-600 mb-2"><span class="font-semibold">Price:</span> ${formatPrice(property.price)}</p>
+                        <p class="text-gray-600 mb-2"><span class="font-semibold">Type:</span> ${property.property_type}</p>
+                        ${property.property_type === 'residential' ? `
+                            <p class="text-gray-600 mb-2"><span class="font-semibold">BHK:</span> ${property.bhk || 'Not specified'}</p>
+                        ` : ''}
+                        <p class="text-gray-600 mb-2"><span class="font-semibold">Area:</span> ${property.area_size} sqft</p>
+                        <p class="text-gray-600 mb-2"><span class="font-semibold">Furnishing:</span> ${property.furnishing || 'Not specified'}</p>
+                        <p class="text-gray-600 mb-4"><span class="font-semibold">Availability:</span> ${property.availability}</p>
+                        
+                        ${imagesHtml}
+                        
+                        <div class="mt-6">
+                            <h3 class="text-xl font-semibold mb-2">Description</h3>
+                            <p class="text-gray-700">${property.description || 'No description available.'}</p>
+                        </div>
+                        
+                        <div class="mt-8">
+                            <button class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700">
+                                Contact Agent
+                            </button>
+                        </div>
+                    `;
+                    
+                    detailsContainer.html(detailsHtml);
+                    
+                    // Add back button event
+                    $('#backButton').click(function(e) {
+                        e.preventDefault();
+                        showPropertyList();
+                    });
+                }, 500); // Simulate network delay
+            }
+            
+            // Function to show the property list again
+            function showPropertyList() {
+                $('#propertiesContainer').removeClass('hidden');
+                $('#productTop').removeClass('hidden');
+                $('#productSideBar').removeClass('hidden');
+                $('#propertyDetailsContainer').addClass('hidden');
+            }
+
+            // Update price range display
+            $('#priceRange').on('input', function() {
+                $('#minPrice').text('₹0');
+                $('#maxPrice').text(formatPrice($(this).val()));
+            });
+        
+            // Update area range display
+            $('#areaRange').on('input', function() {
+                $('#minArea').text('0 sqft');
+                $('#maxArea').text($(this).val() + '+ sqft');
+            });
+        
+            // Add event listeners for all filters
+            $('#sortBy, #propertyCategory, #searchInput, #priceRange, #areaRange').change(function() {
+                fetchProperties();
+            });
+            
+            // Add event listener for checkbox filters
+            $(document).on('change', 'input[type="checkbox"]', function() {
+                fetchProperties();
+            });
+        
+            // Debounce search input
+            let searchTimer;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(fetchProperties, 500);
+            });
+        
+            // Initial load (handled after API call)
+          });
+      </script>
 </body>
 </html>
